@@ -17,7 +17,9 @@ export async function POST(request: Request) {
 
     if (!priceId) {
       return NextResponse.json(
-        { error: "Missing Stripe price ID." },
+        { 
+          error: "Stripe product not configured. Please add STRIPE_MONTHLY_PRICE_ID or NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID to your environment variables. Visit your Stripe dashboard to create a product and get the price ID." 
+        },
         { status: 400 },
       );
     }
@@ -57,10 +59,19 @@ export async function POST(request: Request) {
       },
     });
 
+    if (!session.client_secret) {
+      return NextResponse.json(
+        { error: "Failed to create checkout session. Please try again." },
+        { status: 500 },
+      );
+    }
+
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Checkout failed.";
+    console.error("Stripe checkout error:", errorMessage);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Checkout failed." },
+      { error: errorMessage },
       { status: 500 },
     );
   }
