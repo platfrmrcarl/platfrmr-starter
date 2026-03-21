@@ -8,8 +8,11 @@ import {
 } from "@/lib/billing-client";
 import { useAuth } from "@/hooks/use-auth";
 
+import { useRouter } from "next/navigation";
+
 export function BillingActions() {
   const { profile } = useAuth();
+  const router = useRouter();
   const [error, setError] = useState<string>("");
   const [isLoadingCheckout, setIsLoadingCheckout] = useState(false);
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
@@ -18,8 +21,7 @@ export function BillingActions() {
     try {
       setError("");
       setIsLoadingCheckout(true);
-      const data = await createCheckoutSession();
-      window.location.assign(data.url);
+      router.push("/checkout");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not open checkout.");
       setIsLoadingCheckout(false);
@@ -31,7 +33,11 @@ export function BillingActions() {
       setError("");
       setIsLoadingPortal(true);
       const data = await createBillingPortalSession();
-      window.location.assign(data.url);
+      if (data.url) {
+        window.location.assign(data.url);
+      } else {
+        throw new Error("Missing portal URL.");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not open portal.");
       setIsLoadingPortal(false);

@@ -8,8 +8,8 @@ Act as an autonomous software engineer. Your goal is to complete this Next.js Sa
 - [x] Set up Stripe Payment processing using 
 - [x] Allow users to upgrade, downgrade, or cancel their subscription
 - [x] make sure when they subscribe to a product they have a custom payment portal that is inside the web app and doesn't go to stripe externally.  Use the stripe keys, and secret keys that are provided in .env.local
-- [ ] Update the landing page which is the root page in src/app/page.tsx and make it appealing, professional and polished.
-- [ ] Build application and upon no build errors do a git commit and push it to it's git repository
+- [x] Update the landing page which is the root page in src/app/page.tsx and make it appealing, professional and polished.
+- [x] Build application and upon no build errors do a git commit and push it to it's git repository
 
 ## Execution Loop Instructions
 You must operate in a continuous loop until all tasks are complete. For every iteration, follow these exact steps:
