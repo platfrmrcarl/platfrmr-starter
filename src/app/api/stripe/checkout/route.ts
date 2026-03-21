@@ -4,11 +4,44 @@ import { getUidFromAuthorizationHeader } from "@/lib/auth-server";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { assertStripeConfigured, stripe } from "@/lib/stripe";
 
+// Log environment variables (helpful for debugging)
+if (process.env.NODE_ENV === "development") {
+  console.log("Checkout API - Environment Check:", {
+    FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID ? "✓" : "✗",
+    FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL ? "✓" : "✗",
+    FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY ? `✓ (${process.env.FIREBASE_PRIVATE_KEY.length} chars)` : "✗",
+  });
+}
+
 export async function POST(request: Request) {
   try {
     assertStripeConfigured();
-    const uid = await getUidFromAuthorizationHeader();
-    const adminDb = getAdminDb();
+    
+    let uid: string;
+    try {
+      uid = await getUidFromAuthorizationHeader();
+    } catch (authError) {
+      console.error("Auth error:", authError instanceof Error ? authError.message : String(authError));
+      return NextResponse.json(
+        { error: "Unauthorized. Please log in first." },
+        { status: 401 },
+      );
+    }
+
+    let adminDb;
+    try {
+      adminDb = getAdminDb();
+    } catch (dbError) {
+      console.error("Database initialization error:", dbError instanceof Error ? dbError.message : String(dbError));
+      return NextResponse.json(
+        { 
+          error: "Server configuration error. Contact support if this persists.\n" +
+                 (dbError instanceof Error ? dbError.message : "Database unavailable")
+        },
+        { status: 500 },
+      );
+    }
+
     const body = (await request.json().catch(() => ({}))) as { priceId?: string };
     const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const defaultPriceId =
@@ -69,7 +102,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Checkout failed.";
-    console.error("Stripe checkout error:", errorMessage);
+    console.error("Stripe checkout error:", errorMessage, error);
     return NextResponse.json(
       { error: errorMessage },
       { status: 500 },
