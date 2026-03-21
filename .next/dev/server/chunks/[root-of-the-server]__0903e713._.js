@@ -60,7 +60,17 @@ var __turbopack_async_dependencies__ = __turbopack_handle_async_dependencies__([
 ;
 const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 function hasServiceAccountEnv() {
-    return Boolean(process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && privateKey);
+    const hasProjectId = Boolean(process.env.FIREBASE_PROJECT_ID);
+    const hasClientEmail = Boolean(process.env.FIREBASE_CLIENT_EMAIL);
+    const hasPrivateKey = Boolean(privateKey);
+    if (!hasProjectId || !hasClientEmail || !hasPrivateKey) {
+        console.warn("Firebase service account env check:", {
+            projectId: hasProjectId ? "✓" : "✗",
+            clientEmail: hasClientEmail ? "✓" : "✗",
+            privateKey: hasPrivateKey ? `✓ (${privateKey?.length} chars)` : "✗"
+        });
+    }
+    return hasProjectId && hasClientEmail && hasPrivateKey;
 }
 function getAdminApp() {
     const existing = (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$2c$__$5b$project$5d2f$node_modules$2f$firebase$2d$admin$29$__["getApps"])()[0];
@@ -68,15 +78,29 @@ function getAdminApp() {
         return existing;
     }
     if (hasServiceAccountEnv()) {
-        return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$2c$__$5b$project$5d2f$node_modules$2f$firebase$2d$admin$29$__["initializeApp"])({
-            credential: (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$2c$__$5b$project$5d2f$node_modules$2f$firebase$2d$admin$29$__["cert"])({
+        try {
+            return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$2c$__$5b$project$5d2f$node_modules$2f$firebase$2d$admin$29$__["initializeApp"])({
+                credential: (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$2c$__$5b$project$5d2f$node_modules$2f$firebase$2d$admin$29$__["cert"])({
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    privateKey
+                })
+            });
+        } catch (error) {
+            console.error("Failed to initialize Firebase Admin with cert:", {
                 projectId: process.env.FIREBASE_PROJECT_ID,
                 clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey
-            })
-        });
+                privateKeyLength: privateKey?.length,
+                error: error instanceof Error ? error.message : String(error)
+            });
+            throw error;
+        }
     }
-    return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$2c$__$5b$project$5d2f$node_modules$2f$firebase$2d$admin$29$__["initializeApp"])();
+    // If no service account env vars, try to use GOOGLE_APPLICATION_CREDENTIALS
+    if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$app__$5b$external$5d$__$28$firebase$2d$admin$2f$app$2c$__esm_import$2c$__$5b$project$5d2f$node_modules$2f$firebase$2d$admin$29$__["initializeApp"])();
+    }
+    throw new Error("Firebase Admin SDK is not properly configured. Please add the following environment variables to .env.local:\n" + "1. FIREBASE_PROJECT_ID - Your Firebase project ID (should be 'startup-511e3')\n" + "2. FIREBASE_CLIENT_EMAIL - Service account client email\n" + "3. FIREBASE_PRIVATE_KEY - Service account private key (with literal \\n for newlines)\n\n" + "To get these:\n" + "1. Go to Firebase Console > Project Settings > Service Accounts\n" + "2. Click 'Generate New Private Key'\n" + "3. Copy the values from the downloaded JSON file");
 }
 function getAdminAuth() {
     return (0, __TURBOPACK__imported__module__$5b$externals$5d2f$firebase$2d$admin$2f$auth__$5b$external$5d$__$28$firebase$2d$admin$2f$auth$2c$__esm_import$2c$__$5b$project$5d2f$node_modules$2f$firebase$2d$admin$29$__["getAuth"])(getAdminApp());
@@ -206,7 +230,7 @@ async function POST(request) {
         const uid = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$auth$2d$server$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getUidFromAuthorizationHeader"])();
         const adminDb = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$firebase$2f$admin$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["getAdminDb"])();
         const body = await request.json().catch(()=>({}));
-        const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+        const siteUrl = ("TURBOPACK compile-time value", "http://localhost:3000") ?? "http://localhost:3000";
         const defaultPriceId = process.env.STRIPE_MONTHLY_PRICE_ID ?? process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID;
         const priceId = body.priceId || defaultPriceId;
         if (!priceId) {
@@ -244,8 +268,8 @@ async function POST(request) {
                     quantity: 1
                 }
             ],
-            success_url: `${siteUrl}/dashboard/billing?checkout=success`,
-            cancel_url: `${siteUrl}/pricing?checkout=cancelled`,
+            ui_mode: "embedded",
+            return_url: `${siteUrl}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
             allow_promotion_codes: true,
             client_reference_id: uid,
             metadata: {
@@ -258,7 +282,7 @@ async function POST(request) {
             }
         });
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            url: session.url
+            clientSecret: session.client_secret
         });
     } catch (error) {
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({

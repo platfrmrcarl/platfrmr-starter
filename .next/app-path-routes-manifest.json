@@ -1,9 +1,13 @@
 {
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
+  "/api/health/route": "/api/health",
   "/api/stripe/checkout/route": "/api/stripe/checkout",
+  "/api/stripe/checkout/session/route": "/api/stripe/checkout/session",
   "/api/stripe/portal/route": "/api/stripe/portal",
   "/api/stripe/webhook/route": "/api/stripe/webhook",
+  "/checkout/page": "/checkout",
+  "/checkout/return/page": "/checkout/return",
   "/dashboard/account/page": "/dashboard/account",
   "/dashboard/billing/page": "/dashboard/billing",
   "/dashboard/page": "/dashboard",

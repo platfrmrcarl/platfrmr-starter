@@ -98,10 +98,22 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/api/health",
+      "regex": "^/api/health(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/health(?:/)?$"
+    },
+    {
       "page": "/api/stripe/checkout",
       "regex": "^/api/stripe/checkout(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/stripe/checkout(?:/)?$"
+    },
+    {
+      "page": "/api/stripe/checkout/session",
+      "regex": "^/api/stripe/checkout/session(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/stripe/checkout/session(?:/)?$"
     },
     {
       "page": "/api/stripe/portal",
@@ -114,6 +126,18 @@
       "regex": "^/api/stripe/webhook(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/stripe/webhook(?:/)?$"
+    },
+    {
+      "page": "/checkout",
+      "regex": "^/checkout(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/checkout(?:/)?$"
+    },
+    {
+      "page": "/checkout/return",
+      "regex": "^/checkout/return(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/checkout/return(?:/)?$"
     },
     {
       "page": "/dashboard",

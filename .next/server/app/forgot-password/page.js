@@ -2,7 +2,7 @@ var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/forgot-pass
 R.c("server/chunks/ssr/[root-of-the-server]__c44c09aa._.js")
 R.c("server/chunks/ssr/_0efddc1b._.js")
 R.c("server/chunks/ssr/_13eaa772._.js")
-R.c("server/chunks/ssr/[root-of-the-server]__320d4bf4._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__fbb2aefb._.js")
 R.c("server/chunks/ssr/node_modules_next_dist_2e7de858._.js")
 R.c("server/chunks/ssr/node_modules_7cb79fa0._.js")
 R.c("server/chunks/ssr/src_app_5b2047f8._.js")

@@ -28,6 +28,13 @@ export function PricingCards({ basicPriceId, proPriceId, enterprisePriceId }: Pr
       return;
     }
 
+    if (priceId.startsWith("prod_")) {
+      setError(
+        `${planName} uses a Stripe product ID. Use a Stripe price ID (starts with \"price_\") in your environment variables.`,
+      );
+      return;
+    }
+
     try {
       setLoadingPlan(planName);
       setError("");

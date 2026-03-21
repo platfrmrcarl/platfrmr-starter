@@ -27,6 +27,7 @@ function CheckoutContent() {
         setIsLoading(true);
         setError("");
         const data = await createCheckoutSession(priceId);
+
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
         } else {
@@ -40,7 +41,7 @@ function CheckoutContent() {
         setIsLoading(false);
       }
     }
-    fetchClientSecret();
+    void fetchClientSecret();
   }, [priceId]);
 
   if (error) {

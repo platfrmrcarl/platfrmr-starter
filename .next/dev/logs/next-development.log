@@ -1,2 +1,10 @@
-[00:00:01.246] Server  LOG     ✓ Ready in 866ms
-[00:00:03.819] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:01.531] Server  LOG     ✓ Ready in 1076ms
+[00:00:08.599] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:15.673] Browser WARN    You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[00:00:16.924] Browser ERROR   Checkout error: Invalid API Key provided: sk_live_***********************************************************************************************g6wB
+[00:00:16.924] Browser ERROR   Checkout error: Invalid API Key provided: sk_live_***********************************************************************************************g6wB
+[00:03:23.350] Server  LOG       Reload env: .env.local
+[00:04:13.261] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:13.420] Browser ERROR   Checkout error: You must be signed in.
+[00:04:13.586] Browser WARN    You may test your Stripe.js integration over HTTP. However, live Stripe.js integrations must use HTTPS.
+[00:04:21.235] Browser WARN    Unsupported prop change on EmbeddedCheckoutProvider: You cannot change the client secret after setting it. Unmount and create a new instance of EmbeddedCheckoutProvider instead.

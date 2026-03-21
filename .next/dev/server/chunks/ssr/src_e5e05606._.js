@@ -50,13 +50,16 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$billing$2d$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/billing-client.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/hooks/use-auth.ts [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-ssr] (ecmascript)");
 "use client";
+;
 ;
 ;
 ;
 ;
 function BillingActions() {
     const { profile } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$hooks$2f$use$2d$auth$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useAuth"])();
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useRouter"])();
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])("");
     const [isLoadingCheckout, setIsLoadingCheckout] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [isLoadingPortal, setIsLoadingPortal] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
@@ -64,8 +67,7 @@ function BillingActions() {
         try {
             setError("");
             setIsLoadingCheckout(true);
-            const data = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$billing$2d$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createCheckoutSession"])();
-            window.location.assign(data.url);
+            router.push("/checkout");
         } catch (err) {
             setError(err instanceof Error ? err.message : "Could not open checkout.");
             setIsLoadingCheckout(false);
@@ -76,7 +78,11 @@ function BillingActions() {
             setError("");
             setIsLoadingPortal(true);
             const data = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$billing$2d$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createBillingPortalSession"])();
-            window.location.assign(data.url);
+            if (data.url) {
+                window.location.assign(data.url);
+            } else {
+                throw new Error("Missing portal URL.");
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Could not open portal.");
             setIsLoadingPortal(false);
@@ -91,7 +97,7 @@ function BillingActions() {
                 children: "Billing actions"
             }, void 0, false, {
                 fileName: "[project]/src/components/billing/billing-actions.tsx",
-                lineNumber: 45,
+                lineNumber: 51,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -103,13 +109,13 @@ function BillingActions() {
                         children: profile?.subscriptionStatus ?? "free"
                     }, void 0, false, {
                         fileName: "[project]/src/components/billing/billing-actions.tsx",
-                        lineNumber: 47,
+                        lineNumber: 53,
                         columnNumber: 25
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/billing/billing-actions.tsx",
-                lineNumber: 46,
+                lineNumber: 52,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -123,7 +129,7 @@ function BillingActions() {
                         children: isLoadingCheckout ? "Opening checkout..." : "Upgrade to Pro"
                     }, void 0, false, {
                         fileName: "[project]/src/components/billing/billing-actions.tsx",
-                        lineNumber: 51,
+                        lineNumber: 57,
                         columnNumber: 11
                     }, this) : null,
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -134,13 +140,13 @@ function BillingActions() {
                         children: isLoadingPortal ? "Opening portal..." : "Manage Billing"
                     }, void 0, false, {
                         fileName: "[project]/src/components/billing/billing-actions.tsx",
-                        lineNumber: 61,
+                        lineNumber: 67,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/components/billing/billing-actions.tsx",
-                lineNumber: 49,
+                lineNumber: 55,
                 columnNumber: 7
             }, this),
             error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -148,13 +154,13 @@ function BillingActions() {
                 children: error
             }, void 0, false, {
                 fileName: "[project]/src/components/billing/billing-actions.tsx",
-                lineNumber: 71,
+                lineNumber: 77,
                 columnNumber: 17
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/components/billing/billing-actions.tsx",
-        lineNumber: 44,
+        lineNumber: 50,
         columnNumber: 5
     }, this);
 }

@@ -2,6 +2,47 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // App user profile data
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+
+    // Firebase Stripe Extension documents
+    match /customers/{uid} {
+      allow read: if isOwner(uid);
+
+      match /checkout_sessions/{checkoutSessionId} {
+        allow create: if isOwner(uid);
+        allow read: if isOwner(uid);
+      }
+
+      match /subscriptions/{subscriptionId} {
+        allow read: if isOwner(uid);
+      }
+
+      match /payments/{paymentId} {
+        allow read: if isOwner(uid);
+      }
+    }
+
+    // Stripe catalog mirrored by extension
+    match /products/{productId} {
+      allow read: if true;
+
+      match /prices/{priceId} {
+        allow read: if true;
+      }
+    }
+
+    // Deny everything else
     match /{document=**} {
       allow read, write: if false;
     }
