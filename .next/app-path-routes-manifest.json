@@ -1,0 +1,16 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/stripe/checkout/route": "/api/stripe/checkout",
+  "/api/stripe/portal/route": "/api/stripe/portal",
+  "/api/stripe/webhook/route": "/api/stripe/webhook",
+  "/dashboard/account/page": "/dashboard/account",
+  "/dashboard/billing/page": "/dashboard/billing",
+  "/dashboard/page": "/dashboard",
+  "/favicon.ico/route": "/favicon.ico",
+  "/forgot-password/page": "/forgot-password",
+  "/login/page": "/login",
+  "/page": "/",
+  "/pricing/page": "/pricing",
+  "/signup/page": "/signup"
+}
