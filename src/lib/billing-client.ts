@@ -23,7 +23,7 @@ async function authorizedPost(path: string, body?: Record<string, string>) {
     throw new Error(payload.error ?? "Request failed.");
   }
 
-  return (await response.json()) as { url: string };
+  return (await response.json()) as { clientSecret: string; url?: string };
 }
 
 export async function createCheckoutSession(priceId?: string) {

@@ -25,8 +25,7 @@ export function PricingCards({ monthlyPriceId }: PricingCardsProps) {
     try {
       setIsLoading(true);
       setError("");
-      const data = await createCheckoutSession(monthlyPriceId);
-      window.location.assign(data.url);
+      router.push(`/checkout?priceId=${monthlyPriceId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to open checkout.");
       setIsLoading(false);

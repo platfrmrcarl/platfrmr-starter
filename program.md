@@ -5,9 +5,9 @@ Act as an autonomous software engineer. Your goal is to complete this Next.js Sa
 
 ## Requirements
 - [x] Create a `/health` endpoint that returns a 200 OK status.
-- [ ] Set up Stripe Payment processing using 
-- [ ] Allow users to upgrade, downgrade, or cancel their subscription
-- [ ] make sure when they subscribe to a product they have a custom payment portal that is inside the web app and doesn't go to stripe externally.  Use the stripe keys, and secret keys that are provided in .env.local
+- [x] Set up Stripe Payment processing using 
+- [x] Allow users to upgrade, downgrade, or cancel their subscription
+- [x] make sure when they subscribe to a product they have a custom payment portal that is inside the web app and doesn't go to stripe externally.  Use the stripe keys, and secret keys that are provided in .env.local
 - [ ] Update the landing page which is the root page in src/app/page.tsx and make it appealing, professional and polished.
 - [ ] Build application and upon no build errors do a git commit and push it to it's git repository
 

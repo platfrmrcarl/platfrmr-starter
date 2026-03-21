@@ -47,8 +47,8 @@ export async function POST(request: Request) {
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl}/dashboard/billing?checkout=success`,
-      cancel_url: `${siteUrl}/pricing?checkout=cancelled`,
+      ui_mode: "embedded",
+      return_url: `${siteUrl}/checkout/return?session_id={CHECKOUT_SESSION_ID}`,
       allow_promotion_codes: true,
       client_reference_id: uid,
       metadata: { uid },
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ clientSecret: session.client_secret });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Checkout failed." },
