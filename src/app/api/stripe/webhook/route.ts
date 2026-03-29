@@ -1,133 +1,124 @@
 import { NextResponse } from "next/server";
-import type Stripe from "stripe";
+import Stripe from "stripe";
+import * as admin from "firebase-admin";
 
-import { getAdminDb } from "@/lib/firebase/admin";
-import { assertStripeConfigured, getStripeWebhookSecret, stripe } from "@/lib/stripe";
-import type { SubscriptionStatus } from "@/types/subscription";
-
-const subscriptionStatusMap: Record<string, SubscriptionStatus> = {
-  trialing: "trialing",
-  active: "active",
-  past_due: "past_due",
-  canceled: "canceled",
-  incomplete: "incomplete",
-};
-
-function mapStatus(status?: string): SubscriptionStatus {
-  if (!status) {
-    return "free";
-  }
-
-  return subscriptionStatusMap[status] ?? "free";
+// Avoid re-initializing Firebase Admin if it's already spun up
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: process.env.FIREBASE_PRIVATE_KEY
+      ? admin.credential.cert({
+          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          // Handle Next.js escaping newlines in .env.local string
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        })
+      : admin.credential.applicationDefault(), // Relies on GOOGLE_APPLICATION_CREDENTIALS
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  });
 }
+const db = admin.firestore();
 
-async function findUidByCustomer(customerId: string) {
-  const userQuery = await getAdminDb()
-    .collection("users")
-    .where("stripeCustomerId", "==", customerId)
-    .limit(1)
-    .get();
-
-  if (userQuery.empty) {
-    return null;
-  }
-
-  return userQuery.docs[0].id;
-}
-
-async function updateSubscriptionFromObject(subscription: Stripe.Subscription) {
-  const customerId = subscription.customer as string;
-  const uidFromMetadata = subscription.metadata?.uid;
-  const uid = uidFromMetadata || (await findUidByCustomer(customerId));
-
-  if (!uid) {
-    return;
-  }
-
-  const priceId = subscription.items.data[0]?.price?.id ?? null;
-
-  await getAdminDb()
-    .collection("users")
-    .doc(uid)
-    .set(
-      {
-        stripeCustomerId: customerId,
-        stripeSubscriptionId: subscription.id,
-        stripePriceId: priceId,
-        subscriptionStatus: mapStatus(subscription.status),
-        updatedAt: new Date(),
-      },
-      { merge: true },
-    );
-}
-
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const subscriptionId = session.subscription as string | null;
-  const customerId = session.customer as string | null;
-  const uid = session.metadata?.uid || session.client_reference_id;
-
-  if (!uid || !customerId) {
-    return;
-  }
-
-  if (!subscriptionId) {
-    await getAdminDb().collection("users").doc(uid).set(
-      {
-        stripeCustomerId: customerId,
-        updatedAt: new Date(),
-      },
-      { merge: true },
-    );
-    return;
-  }
-
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  await updateSubscriptionFromObject(subscription);
-}
-
-export async function POST(request: Request) {
-  assertStripeConfigured();
-  const payload = await request.text();
-  const signature = request.headers.get("stripe-signature");
-
-  if (!signature) {
-    return NextResponse.json({ error: "Missing Stripe signature." }, { status: 400 });
-  }
+export async function POST(req: Request) {
+  // Capture raw body for Stripe signature validation
+  const body = await req.text();
+  const signature = req.headers.get("stripe-signature");
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      payload,
-      signature,
-      getStripeWebhookSecret(),
-    );
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Invalid webhook signature." },
-      { status: 400 },
-    );
-  }
-
-  try {
-    switch (event.type) {
-      case "checkout.session.completed":
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
-        break;
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-      case "customer.subscription.deleted":
-        await updateSubscriptionFromObject(event.data.object as Stripe.Subscription);
-        break;
-      default:
-        break;
+    const signature = req.headers.get("stripe-signature");
+    if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
+      throw new Error("Missing Stripe signature or Webhook Secret");
     }
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Webhook processing failed." },
-      { status: 500 },
+    
+    // We need stripe here just to verify signature
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+      apiVersion: "2026-03-25.dahlia" as any,
+    });
+    
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
     );
+  } catch (error: any) {
+    console.error(`Webhook Error: ${error.message}`);
+    return NextResponse.json({ error: `Webhook Error: ${error.message}` }, { status: 400 });
   }
 
-  return NextResponse.json({ received: true });
+  // Handle the event
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+      apiVersion: "2026-03-25.dahlia" as any,
+    });
+    
+    switch (event.type) {
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+
+        // Retrieve the customer from Stripe to find the associated Firebase user ID
+        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+
+        if (customer && customer.metadata && customer.metadata.firebaseUID) {
+          const userId = customer.metadata.firebaseUID;
+          
+          let planName = "pro";
+          let credits = 5000;
+
+          if (invoice.lines && invoice.lines.data.length > 0) {
+            // In Stripe's InvoiceLineItem type, price is actually inside price object
+            const lineItem = invoice.lines.data[0] as any;
+            const price = lineItem.price;
+            if (price && price.product) {
+              const product = await stripe.products.retrieve(price.product as string);
+              if (product && product.name) {
+                planName = product.name.toLowerCase();
+                if (planName.includes('starter')) credits = 1000;
+                else if (planName.includes('enterprise')) credits = 10000;
+                else if (planName.includes('pro')) credits = 5000;
+                else if (planName.includes('basic')) credits = 2500;
+              }
+            }
+          }
+          
+          // Update the user's document in Firestore securely via backend
+          await db.collection("users").doc(userId).set({
+            subscriptionStatus: "active",
+            subscription: planName,
+            stripeCustomerId: customerId,
+            credits: credits,
+          }, { merge: true });
+          console.log(`Updated user ${userId} to active subscription ${planName} with ${credits} credits.`);
+        }
+        break;
+      }
+      
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = subscription.customer as string;
+
+        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+        
+        if (customer && customer.metadata && customer.metadata.firebaseUID) {
+          const userId = customer.metadata.firebaseUID;
+          
+          await db.collection("users").doc(userId).set({
+            subscriptionStatus: "none",
+            subscription: "basic",
+          }, { merge: true });
+          console.log(`Downgraded user ${userId} to basic subscription.`);
+        }
+        break;
+      }
+
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    return NextResponse.json({ received: true });
+  } catch (error: any) {
+    console.error(`Error processing webhook: ${error.message}`);
+    return NextResponse.json({ error: "Db processing failed." }, { status: 500 });
+  }
 }

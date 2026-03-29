@@ -1,132 +1,97 @@
 "use client";
 
+import { useAuth } from "@/lib/contexts/AuthContext";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
 import { loadStripe } from "@stripe/stripe-js";
-import {
-  EmbeddedCheckoutProvider,
-  EmbeddedCheckout,
-} from "@stripe/react-stripe-js";
-import { createCheckoutSession } from "@/lib/billing-client";
+import { Elements } from "@stripe/react-stripe-js";
+import CheckoutForm from "@/components/CheckoutForm";
 
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? ""
-);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
 function CheckoutContent() {
-  const searchParams = useSearchParams();
+  const { user, loading } = useAuth();
   const router = useRouter();
-  const priceId = searchParams.get("priceId") ?? undefined;
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
+  const searchParams = useSearchParams();
+  const priceId = searchParams.get("price") || process.env.NEXT_PUBLIC_STRIPE_PRICE_ID_PRO || "price_pro"; 
+  
+  const [clientSecret, setClientSecret] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchClientSecret() {
-      try {
-        setIsLoading(true);
-        setError("");
-        const data = await createCheckoutSession(priceId);
-
-        if (data.clientSecret) {
-          setClientSecret(data.clientSecret);
-        } else {
-          setError("Failed to create checkout session. Please try again.");
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to load checkout.";
-        console.error("Checkout error:", errorMessage);
-        setError(errorMessage);
-      } finally {
-        setIsLoading(false);
-      }
+    if (!loading && !user) {
+      router.push("/");
+      return;
     }
-    void fetchClientSecret();
-  }, [priceId]);
 
-  if (error) {
-    return (
-      <div className="space-y-4">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-6">
-          <h3 className="font-semibold text-red-900">Checkout Error</h3>
-          <p className="mt-2 text-sm text-red-700">{error}</p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-            >
-              Try Again
-            </button>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-            >
-              Go Back
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+    if (!loading && user && !clientSecret) {
+      const initCheckout = async () => {
+        try {
+          const response = await fetch("/api/stripe/create-subscription", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: user.email, userId: user.uid, priceId }),
+          });
 
-  if (isLoading || !clientSecret) {
+          const data = await response.json();
+          if (data.clientSecret) {
+            setClientSecret(data.clientSecret);
+          } else if (data.isFree) {
+            // If it's a free subscription (no payment intent required)
+            router.push("/app");
+          } else {
+            setError(data.error?.message || "Failed to initialize checkout.");
+          }
+        } catch (err) {
+          setError("Failed to generate stripe configuration.");
+        }
+      };
+
+      initCheckout();
+    }
+  }, [user, loading, router, clientSecret, priceId]);
+
+  if (loading || !user) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-4 py-12">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-600"></div>
-        <p className="text-slate-600">Setting up your checkout...</p>
+      <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
+        <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }
 
   return (
-    <div id="checkout" className="rounded-lg border border-slate-200 bg-slate-50 p-6">
-      <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
-        <EmbeddedCheckout />
-      </EmbeddedCheckoutProvider>
+    <div className="container mx-auto px-4 py-20 flex justify-center">
+      <div className="card bg-base-100 shadow-xl border border-base-200 w-full max-w-lg p-8">
+        <div className="card-body gap-6 px-0 md:px-4">
+          <h1 className="text-3xl font-bold text-center mb-2">Checkout</h1>
+          <p className="text-center text-base-content/70 mb-6">Complete your subscription checkout below</p>
+          
+          {error && (
+            <div className="alert alert-error mb-4">
+              <span>{error}</span>
+            </div>
+          )}
+
+          {!clientSecret && !error ? (
+            <div className="flex justify-center my-10">
+              <span className="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+          ) : clientSecret ? (
+            <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe', variables: { colorPrimary: '#2666E2' } } } as any}>
+              <CheckoutForm />
+            </Elements>
+          ) : null}
+          
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function CheckoutPage() {
   return (
-    <main className="mx-auto max-w-2xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-slate-900">
-            Upgrade to Pro
-          </h1>
-          <p className="mt-3 text-lg text-slate-600">
-            Get access to all premium features. Secure payment powered by Stripe.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-lg">
-          <div className="border-b border-slate-200 bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-4 sm:px-8">
-            <h2 className="text-lg font-semibold text-slate-900">Payment Details</h2>
-            <p className="mt-1 text-sm text-slate-600">
-              Enter your credit card information to complete your subscription
-            </p>
-          </div>
-          
-          <div className="p-6 sm:p-8">
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-cyan-600"></div>
-              </div>
-            }>
-              <CheckoutContent />
-            </Suspense>
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs text-slate-600">
-            💳 Your payment is secure and encrypted. We use Stripe to securely process your payment.
-          </p>
-        </div>
-      </div>
-    </main>
+    <Suspense fallback={<div className="flex justify-center h-full mt-20"><span className="loading loading-spinner loading-lg"></span></div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }

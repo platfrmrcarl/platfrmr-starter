@@ -14,64 +14,8 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     }
   ],
-  "headers": [
-    {
-      "source": "/builder",
-      "headers": [
-        {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "credentialless"
-        },
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
-        }
-      ],
-      "regex": "^/builder(?:/)?$"
-    },
-    {
-      "source": "/builder/:path*",
-      "headers": [
-        {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "credentialless"
-        },
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
-        }
-      ],
-      "regex": "^/builder(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
-    },
-    {
-      "source": "/dashboard",
-      "headers": [
-        {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "credentialless"
-        },
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
-        }
-      ],
-      "regex": "^/dashboard(?:/)?$"
-    },
-    {
-      "source": "/dashboard/:path*",
-      "headers": [
-        {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "credentialless"
-        },
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
-        }
-      ],
-      "regex": "^/dashboard(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))?(?:/)?$"
-    }
-  ],
+  "headers": [],
+  "onMatchHeaders": [],
   "rewrites": {
     "beforeFiles": [],
     "afterFiles": [],
@@ -98,28 +42,22 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
-      "page": "/api/health",
-      "regex": "^/api/health(?:/)?$",
+      "page": "/api/chat",
+      "regex": "^/api/chat(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/api/health(?:/)?$"
+      "namedRegex": "^/api/chat(?:/)?$"
     },
     {
-      "page": "/api/stripe/checkout",
-      "regex": "^/api/stripe/checkout(?:/)?$",
+      "page": "/api/stripe/create-subscription",
+      "regex": "^/api/stripe/create\\-subscription(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/api/stripe/checkout(?:/)?$"
+      "namedRegex": "^/api/stripe/create\\-subscription(?:/)?$"
     },
     {
-      "page": "/api/stripe/checkout/session",
-      "regex": "^/api/stripe/checkout/session(?:/)?$",
+      "page": "/api/stripe/products",
+      "regex": "^/api/stripe/products(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/api/stripe/checkout/session(?:/)?$"
-    },
-    {
-      "page": "/api/stripe/portal",
-      "regex": "^/api/stripe/portal(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/api/stripe/portal(?:/)?$"
+      "namedRegex": "^/api/stripe/products(?:/)?$"
     },
     {
       "page": "/api/stripe/webhook",
@@ -128,52 +66,28 @@
       "namedRegex": "^/api/stripe/webhook(?:/)?$"
     },
     {
+      "page": "/app",
+      "regex": "^/app(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/app(?:/)?$"
+    },
+    {
+      "page": "/cancel",
+      "regex": "^/cancel(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/cancel(?:/)?$"
+    },
+    {
       "page": "/checkout",
       "regex": "^/checkout(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/checkout(?:/)?$"
     },
     {
-      "page": "/checkout/return",
-      "regex": "^/checkout/return(?:/)?$",
+      "page": "/icon.png",
+      "regex": "^/icon\\.png(?:/)?$",
       "routeKeys": {},
-      "namedRegex": "^/checkout/return(?:/)?$"
-    },
-    {
-      "page": "/dashboard",
-      "regex": "^/dashboard(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/dashboard(?:/)?$"
-    },
-    {
-      "page": "/dashboard/account",
-      "regex": "^/dashboard/account(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/dashboard/account(?:/)?$"
-    },
-    {
-      "page": "/dashboard/billing",
-      "regex": "^/dashboard/billing(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/dashboard/billing(?:/)?$"
-    },
-    {
-      "page": "/favicon.ico",
-      "regex": "^/favicon\\.ico(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/favicon\\.ico(?:/)?$"
-    },
-    {
-      "page": "/forgot-password",
-      "regex": "^/forgot\\-password(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/forgot\\-password(?:/)?$"
-    },
-    {
-      "page": "/login",
-      "regex": "^/login(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/login(?:/)?$"
+      "namedRegex": "^/icon\\.png(?:/)?$"
     },
     {
       "page": "/pricing",
@@ -182,10 +96,28 @@
       "namedRegex": "^/pricing(?:/)?$"
     },
     {
+      "page": "/settings",
+      "regex": "^/settings(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/settings(?:/)?$"
+    },
+    {
+      "page": "/signin",
+      "regex": "^/signin(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/signin(?:/)?$"
+    },
+    {
       "page": "/signup",
       "regex": "^/signup(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/signup(?:/)?$"
+    },
+    {
+      "page": "/upgrade",
+      "regex": "^/upgrade(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/upgrade(?:/)?$"
     }
   ],
   "dataRoutes": [],
