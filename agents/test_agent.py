@@ -12,7 +12,7 @@ class TestAgent(agents.LlmAgent):
             of text based on the user's request. 
             Keep it concise and flavored with a bit of cyber-punk wit.
             """,
-            model="gemini-2.0-flash" 
+            model="gemini-3.0-flash" 
         )
 
     def generate_string(self, user_input: str):
