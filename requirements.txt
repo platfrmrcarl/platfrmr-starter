@@ -1,0 +1,14 @@
+# Core Agent Framework
+google-adk
+
+# Web Server & API
+fastapi
+uvicorn[standard]
+pydantic
+
+# Environment & Utilities
+python-dotenv
+httpx
+
+# Optional: If your agents need to handle file uploads or complex form data
+python-multipart
